@@ -348,7 +348,7 @@
 
                  <!-- Control Panel -->
                  <div id="controls">
-                    <select id="difficulty" onchange="setDifficulty(this.value)">
+                    <select id="difficulty" aria-label="Select difficulty" onchange="setDifficulty(this.value)">
                         <option value="easy">EASY</option>
                         <option value="medium" selected>MEDIUM</option>
                         <option value="hard">HARD</option>
@@ -619,12 +619,7 @@
             lastTick = now;
             timeRemaining[tickingSide] -= deltaSeconds;
             if (timeRemaining[tickingSide] <= 0) {
-                timeRemaining[tickingSide] = 0;
-                updateClockDisplay();
-                clearInterval(timerInterval);
-                timeExpired = true;
-                updateStatus(`${tickingSide === 'w' ? 'White' : 'Black'} ran out of time.`);
-                log(`Clock Flag: ${tickingSide === 'w' ? 'White' : 'Black'} loses on time.`);
+                endGameDueToTime(tickingSide);
                 return;
             }
             updateClockDisplay();
@@ -635,9 +630,20 @@
         clearInterval(timerInterval);
     }
 
+    function endGameDueToTime(side) {
+        timeRemaining[side] = 0;
+        updateClockDisplay();
+        clearInterval(timerInterval);
+        timeExpired = true;
+        const sideName = side === 'w' ? 'White' : 'Black';
+        updateStatus(`${sideName} ran out of time.`);
+        log(`Clock Flag: ${sideName} loses on time.`);
+    }
+
     function playSound(type) {
-        if (!soundEnabled || typeof AudioContext === 'undefined') return;
-        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!soundEnabled || !AudioCtx) return;
+        audioCtx = audioCtx || new AudioCtx();
         const o = audioCtx.createOscillator();
         const g = audioCtx.createGain();
         const freq = type === 'capture' ? 440 : type === 'check' ? 520 : 380;
@@ -721,6 +727,10 @@
         }
     }
 
+    /**
+     * Fisher-Yates shuffle to randomize move ordering for variety.
+     * @param {Array} arr
+     */
     function shuffleArray(arr) {
         for (let i = arr.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -911,11 +921,24 @@
 
     function exportPGN() {
         const pgn = game.pgn();
-        if (navigator.clipboard) {
+        const attemptCopy = () => {
+            if (!navigator.clipboard) return false;
             navigator.clipboard
                 .writeText(pgn)
                 .then(() => log("PGN copied to clipboard."))
                 .catch(() => log("Clipboard access denied."));
+            return true;
+        };
+        if (navigator.permissions && navigator.permissions.query) {
+            navigator.permissions.query({ name: 'clipboard-write' }).then(result => {
+                if (result.state === 'denied') {
+                    log("Clipboard access denied.");
+                } else {
+                    attemptCopy();
+                }
+            });
+        } else {
+            attemptCopy();
         }
         const blob = new Blob([pgn], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);

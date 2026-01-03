@@ -1,0 +1,2 @@
+# the-terminal
+python script

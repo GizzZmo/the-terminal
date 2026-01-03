@@ -358,10 +358,10 @@
                  </div>
 
                  <!-- Clocks -->
-                 <div id="clocks">
-                    <div class="clock-label">White ⏱ <span id="white-clock">05:00</span></div>
-                    <div class="clock-label">Black ⏱ <span id="black-clock">05:00</span></div>
-                 </div>
+                <div id="clocks">
+                    <div class="clock-label">White ⏱ <span id="white-clock"></span></div>
+                    <div class="clock-label">Black ⏱ <span id="black-clock"></span></div>
+                </div>
              </div>
              
              <!-- Move History -->
@@ -429,6 +429,8 @@
     let timerInterval = null;
     let tickingSide = 'w';
     let audioCtx = null;
+    const AI_UNDO_PLIES = 2;
+    const VALUE_TOLERANCE = 10;
 
     const difficultySettings = {
         easy: { depth: 1, randomness: 0.35 },
@@ -613,21 +615,19 @@
         let lastTick = Date.now();
         timerInterval = setInterval(() => {
             const now = Date.now();
-            const delta = Math.floor((now - lastTick) / 1000);
-            if (delta > 0) {
-                lastTick = now;
-                timeRemaining[tickingSide] -= delta;
-                if (timeRemaining[tickingSide] <= 0) {
-                    timeRemaining[tickingSide] = 0;
-                    updateClockDisplay();
-                    clearInterval(timerInterval);
-                    timeExpired = true;
-                    updateStatus(`${tickingSide === 'w' ? 'White' : 'Black'} ran out of time.`);
-                    log(`Clock Flag: ${tickingSide === 'w' ? 'White' : 'Black'} loses on time.`);
-                    return;
-                }
+            const deltaSeconds = (now - lastTick) / 1000;
+            lastTick = now;
+            timeRemaining[tickingSide] -= deltaSeconds;
+            if (timeRemaining[tickingSide] <= 0) {
+                timeRemaining[tickingSide] = 0;
                 updateClockDisplay();
+                clearInterval(timerInterval);
+                timeExpired = true;
+                updateStatus(`${tickingSide === 'w' ? 'White' : 'Black'} ran out of time.`);
+                log(`Clock Flag: ${tickingSide === 'w' ? 'White' : 'Black'} loses on time.`);
+                return;
             }
+            updateClockDisplay();
         }, 1000);
     }
 
@@ -665,7 +665,7 @@
                 if (['r', 'b', 'n'].includes(p.type)) minorMajor++;
             }
         }
-        return queens === 0 || (queens === 2 && minorMajor <= 4);
+        return queens <= 1 || minorMajor <= 4;
     }
 
     function evaluateBoardState(chessInstance) {
@@ -731,7 +731,6 @@
     function searchBestMove() {
         const clone = new Chess(game.fen());
         const { depth, randomness } = difficultySettings[difficulty];
-        const VALUE_TOLERANCE = 10;
         const candidates = [];
         const maximizing = clone.turn() === 'w';
         const moves = clone.moves({ verbose: true });
@@ -900,7 +899,7 @@
 
     function undoMove() {
         if (!game.history().length || timeExpired) return;
-        let undoCount = twoPlayerMode ? 1 : Math.min(2, game.history().length);
+        let undoCount = twoPlayerMode ? 1 : Math.min(AI_UNDO_PLIES, game.history().length);
         for (let i = 0; i < undoCount; i++) game.undo();
         selectedSquare = null;
         hintSquares = [];
@@ -912,7 +911,12 @@
 
     function exportPGN() {
         const pgn = game.pgn();
-        if (navigator.clipboard) navigator.clipboard.writeText(pgn).then(() => log("PGN copied to clipboard.")).catch(() => log("Clipboard access denied."));
+        if (navigator.clipboard) {
+            navigator.clipboard
+                .writeText(pgn)
+                .then(() => log("PGN copied to clipboard."))
+                .catch(() => log("Clipboard access denied."));
+        }
         const blob = new Blob([pgn], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

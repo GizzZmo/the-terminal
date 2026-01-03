@@ -593,8 +593,9 @@
     // TIMERS & SOUND
     // ========================================================================
     function formatTime(seconds) {
-        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
-        const s = Math.max(0, seconds % 60).toString().padStart(2, '0');
+        const total = Math.max(0, Math.floor(seconds));
+        const m = Math.floor(total / 60).toString().padStart(2, '0');
+        const s = (total % 60).toString().padStart(2, '0');
         return `${m}:${s}`;
     }
 
@@ -713,28 +714,6 @@
             }
             return minEval;
         }
-    }
-
-    function minimaxRoot(depth, chessInstance) {
-        const maximizingPlayer = chessInstance.turn() === 'w';
-        const moves = chessInstance.moves({ verbose: true });
-        shuffleArray(moves);
-        let bestMove = null;
-        let bestValue = maximizingPlayer ? -Infinity : Infinity;
-        for (const move of moves) {
-            chessInstance.move(move);
-            const value = minimax(depth - 1, chessInstance, -Infinity, Infinity, !maximizingPlayer);
-            chessInstance.undo();
-            if (maximizingPlayer && value > bestValue) {
-                bestValue = value;
-                bestMove = move;
-            }
-            if (!maximizingPlayer && value < bestValue) {
-                bestValue = value;
-                bestMove = move;
-            }
-        }
-        return { bestMove, bestValue };
     }
 
     function shuffleArray(arr) {

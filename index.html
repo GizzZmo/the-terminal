@@ -1,55 +1,92 @@
 <!DOCTYPE html>
+<!--
+    THE TERMINAL - Cyberpunk Chess vs GM 3000 AI
+    ==============================================
+    
+    A Matrix-themed chess game featuring:
+    - Animated "Matrix rain" background effect
+    - Cyberpunk neon green aesthetic
+    - Interactive chess board with move validation
+    - AI opponent using material evaluation (~1500-1800 ELO)
+    - Real-time game log and position evaluation
+    
+    Technologies:
+    - HTML5 Canvas for Matrix rain animation
+    - chess.js library for game logic and move validation
+    - Pure CSS3 for styling (no external CSS files)
+    - Vanilla JavaScript (no frameworks)
+    
+    Author: GM 3000 AI
+    License: Open Source
+-->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>GM 3000 // THE TERMINAL</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <style>
+        /* ===================================================================
+           CSS CUSTOM PROPERTIES (Variables)
+           =================================================================== */
+        /* Cyberpunk color scheme - neon green on black for Matrix aesthetic */
         :root {
-            --neon-green: #0f0;
-            --dark-green: #053305;
-            --grid-color: #001a00;
-            --highlight: rgba(0, 255, 0, 0.4);
-            --text-glow: 0 0 5px var(--neon-green);
+            --neon-green: #0f0;       /* Primary accent color - Matrix green */
+            --dark-green: #053305;     /* Dark green for highlights/backgrounds */
+            --grid-color: #001a00;     /* Very dark green for subtle elements */
+            --highlight: rgba(0, 255, 0, 0.4); /* Semi-transparent green for highlights */
+            --text-glow: 0 0 5px var(--neon-green); /* Neon glow effect for text */
         }
 
+        /* ===================================================================
+           GLOBAL LAYOUT & BODY
+           =================================================================== */
+        /* Full-screen dark background with centered flexbox layout */
         body {
             margin: 0;
             background: black;
             color: var(--neon-green);
-            font-family: 'Courier New', Courier, monospace;
-            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace; /* Monospace for terminal aesthetic */
+            overflow: hidden; /* Prevent scrolling */
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
-            user-select: none;
+            user-select: none; /* Prevent text selection for cleaner UI */
         }
 
-        /* Matrix Background */
+        /* ===================================================================
+           MATRIX RAIN BACKGROUND
+           =================================================================== */
+        /* Canvas positioned behind all other elements for animated background */
         canvas#matrix {
             position: absolute;
             top: 0;
             left: 0;
             z-index: 0;
-            opacity: 0.3;
+            opacity: 0.3; /* Subtle background effect */
         }
 
-        /* UI Container */
+        /* ===================================================================
+           GAME CONTAINER & LAYOUT
+           =================================================================== */
+        /* Main container holding the chess board and HUD side-by-side */
         #game-container {
-            z-index: 10;
+            z-index: 10; /* Above the matrix background */
             display: flex;
             flex-direction: row;
             gap: 20px;
-            background: rgba(0, 10, 0, 0.85);
+            background: rgba(0, 10, 0, 0.85); /* Semi-transparent dark green background */
             padding: 20px;
             border: 1px solid var(--neon-green);
-            box-shadow: 0 0 20px var(--dark-green);
-            backdrop-filter: blur(5px);
+            box-shadow: 0 0 20px var(--dark-green); /* Glowing border effect */
+            backdrop-filter: blur(5px); /* Blur effect for glassmorphism */
         }
 
-        /* The Board */
+        /* ===================================================================
+           CHESS BOARD GRID
+           =================================================================== */
+        /* 8x8 CSS Grid for the chess board */
         #board {
             display: grid;
             grid-template-columns: repeat(8, 60px);
@@ -57,6 +94,10 @@
             border: 2px solid var(--neon-green);
         }
 
+        /* ===================================================================
+           BOARD SQUARES
+           =================================================================== */
+        /* Individual chess squares with pieces centered */
         .square {
             width: 60px;
             height: 60px;
@@ -68,30 +109,41 @@
             position: relative;
         }
 
+        /* Standard chess board coloring - light and dark squares */
         .square.light { background: #111; }
         .square.dark { background: #000; }
         
+        /* Hover effect - neon green glow on mouse over */
         .square:hover {
             box-shadow: inset 0 0 10px var(--neon-green);
         }
 
+        /* Highlight for currently selected square */
         .square.selected {
             background: var(--dark-green) !important;
             box-shadow: inset 0 0 15px var(--neon-green);
         }
 
+        /* Highlight for the last move made */
         .square.last-move {
             background: rgba(255, 255, 0, 0.15) !important;
             border: 1px dashed yellow;
         }
 
+        /* ===================================================================
+           CHESS PIECES
+           =================================================================== */
+        /* Styling for the Unicode chess piece characters */
         .piece {
             z-index: 2;
             text-shadow: 0 0 2px var(--neon-green);
             font-weight: bold;
         }
 
-        /* HUD / Sidebar */
+        /* ===================================================================
+           HUD / SIDEBAR
+           =================================================================== */
+        /* Right-side panel containing game info, status, and controls */
         #hud {
             width: 300px;
             display: flex;
@@ -99,6 +151,10 @@
             justify-content: space-between;
         }
 
+        /* ===================================================================
+           HUD TEXT ELEMENTS
+           =================================================================== */
+        /* Game title and version display */
         h1 {
             margin: 0 0 10px 0;
             text-shadow: var(--text-glow);
@@ -107,6 +163,7 @@
             padding-bottom: 10px;
         }
 
+        /* Status messages (turn indicator, game state, etc.) */
         #status {
             font-size: 14px;
             margin-bottom: 20px;
@@ -114,6 +171,10 @@
             color: #fff;
         }
 
+        /* ===================================================================
+           GAME LOG
+           =================================================================== */
+        /* Scrollable game event log */
         #log {
             flex-grow: 1;
             border: 1px solid var(--dark-green);
@@ -125,9 +186,14 @@
             margin-bottom: 20px;
         }
 
+        /* Individual log entries with timestamps */
         .log-entry { margin-bottom: 5px; }
         .log-entry span { color: #888; }
 
+        /* ===================================================================
+           BUTTONS
+           =================================================================== */
+        /* Control buttons with cyberpunk styling */
         button {
             background: black;
             color: var(--neon-green);
@@ -140,54 +206,89 @@
             font-weight: bold;
         }
 
+        /* Button hover effect - inverted colors with glow */
         button:hover {
             background: var(--neon-green);
             color: black;
             box-shadow: 0 0 15px var(--neon-green);
         }
 
+        /* ===================================================================
+           EVALUATION BAR
+           =================================================================== */
+        /* Visual representation of position evaluation */
         #eval-bar {
             width: 100%;
             height: 10px;
-            background: #333;
+            background: #333; /* Dark background for empty portion */
             margin-top: 10px;
             position: relative;
         }
+        
+        /* Animated fill showing material advantage */
         #eval-fill {
-            width: 50%;
+            width: 50%; /* Start at 50% (equal position) */
             height: 100%;
             background: var(--neon-green);
-            transition: width 0.5s ease;
+            transition: width 0.5s ease; /* Smooth animation when evaluation changes */
         }
 
-        /* Mobile adjustments */
+        /* ===================================================================
+           RESPONSIVE DESIGN
+           =================================================================== */
+        /* Mobile adjustments for smaller screens */
         @media (max-width: 800px) {
+            /* Stack board and HUD vertically on mobile */
             #game-container { flex-direction: column; }
+            
+            /* Scale board squares to viewport width */
             #board {
                 grid-template-columns: repeat(8, 11vw);
                 grid-template-rows: repeat(8, 11vw);
             }
             .square { width: 11vw; height: 11vw; font-size: 8vw; }
+            
+            /* Full width HUD on mobile */
             #hud { width: 100%; }
         }
     </style>
 </head>
 <body>
 
+    <!-- Matrix Rain Background Canvas -->
+    <!-- Animated background effect inspired by The Matrix -->
     <canvas id="matrix"></canvas>
 
+    <!-- Main Game Container -->
+    <!-- Contains the chess board and HUD side by side -->
     <div id="game-container">
+        
+        <!-- Chess Board Grid (8x8) -->
+        <!-- Dynamically populated with squares and pieces by JavaScript -->
         <div id="board"></div>
+        
+        <!-- HUD / Sidebar Panel -->
+        <!-- Contains game status, log, controls, and evaluation bar -->
         <div id="hud">
             <div>
+                <!-- Game Title and Version -->
                 <h1>GM 3000 <span style="font-size:12px; vertical-align:middle">v16.0</span></h1>
+                
+                <!-- Current Status Display -->
+                <!-- Shows turn info, game state, and system messages -->
                 <div id="status">System Ready. Awaiting Input...</div>
+                
+                <!-- Position Evaluation Bar -->
+                <!-- Visual indicator of material advantage -->
                 <div id="eval-bar"><div id="eval-fill"></div></div>
                 <div style="font-size: 10px; text-align: right; margin-top: 2px;">EVALUATION</div>
             </div>
             
+            <!-- Game Event Log -->
+            <!-- Scrollable list of moves and game events -->
             <div id="log"></div>
             
+            <!-- Control Buttons -->
             <div style="display:flex; gap:10px;">
                 <button onclick="resetGame()">Reset System</button>
                 <button onclick="flipBoard()">Flip Cam</button>
@@ -196,112 +297,159 @@
     </div>
 
 <script>
-    // --- MATRIX RAIN EFFECT ---
+    // ========================================================================
+    // MATRIX RAIN BACKGROUND EFFECT
+    // ========================================================================
+    // Creates the iconic Matrix-style falling character animation in the background.
+    // Uses HTML5 Canvas to render animated green characters cascading down the screen.
+    
     const canvas = document.getElementById('matrix');
     const ctx = canvas.getContext('2d');
 
+    // Set canvas to full viewport size
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
+    // Character sets for the matrix rain effect
     const katakana = 'アァカサタナハマヤャラワガザダバパイィキシチニヒミリヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン0123456789Z';
     const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     const nums = '0123456789';
-    const alphabet = katakana + latin + nums;
+    const alphabet = katakana + latin + nums; // Combined character set
 
+    // Configuration for the rain effect
     const fontSize = 16;
-    const columns = canvas.width/fontSize;
-    const rainDrops = [];
+    const columns = canvas.width/fontSize; // Number of columns based on screen width
+    const rainDrops = []; // Tracks Y position of each column's "raindrop"
 
+    // Initialize each column to start at the top
     for( let x = 0; x < columns; x++ ) {
         rainDrops[x] = 1;
     }
 
+    /**
+     * Draws one frame of the Matrix rain animation.
+     * Creates a trailing effect by drawing a semi-transparent black rectangle
+     * over the entire canvas, then renders green characters for each column.
+     * Each character moves down one row per frame, and randomly resets to the top.
+     */
     function drawMatrix() {
+        // Create fade effect with semi-transparent black overlay
         ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+        // Set up character styling (Matrix green)
         ctx.fillStyle = '#0F0';
         ctx.font = fontSize + 'px monospace';
 
+        // Draw each column's character
         for(let i = 0; i < rainDrops.length; i++) {
+            // Pick a random character from the alphabet
             const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
             ctx.fillText(text, i*fontSize, rainDrops[i]*fontSize);
 
+            // Reset column to top when it reaches bottom (with some randomness)
             if(rainDrops[i]*fontSize > canvas.height && Math.random() > 0.975){
                 rainDrops[i] = 0;
             }
+            // Move the raindrop down one position
             rainDrops[i]++;
         }
     }
+    // Run the animation at ~33fps (every 30ms)
     setInterval(drawMatrix, 30);
 
-    // --- CHESS ENGINE & LOGIC ---
-    let game = new Chess();
-    let boardEl = document.getElementById('board');
-    let selectedSquare = null;
-    let playerColor = 'w'; // 'w' or 'b'
-    let isFlipped = false;
+    // ========================================================================
+    // CHESS GAME STATE & CONFIGURATION
+    // ========================================================================
+    // Core game state management using chess.js library
+    
+    let game = new Chess(); // Chess.js instance for game logic and move validation
+    let boardEl = document.getElementById('board'); // Reference to the board container
+    let selectedSquare = null; // Currently selected square (null if none)
+    let playerColor = 'w'; // Player's color: 'w' for white, 'b' for black
+    let isFlipped = false; // Whether the board is flipped (for black's perspective)
 
-    // Unicode Chess Pieces
+    // Unicode Chess Pieces mapping
+    // Maps piece type to Unicode chess symbols (lowercase for black, uppercase for white)
     const pieces = {
         'p': '♟', 'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚',
         'P': '♙', 'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔'
     };
 
+    // ========================================================================
+    // UI HELPER FUNCTIONS
+    // ========================================================================
+
+    /**
+     * Logs a message to the game log panel with a timestamp.
+     * Messages are displayed in chronological order and auto-scroll to show latest.
+     * 
+     * @param {string} msg - The message to log
+     */
     function log(msg) {
         const logEl = document.getElementById('log');
         const entry = document.createElement('div');
         entry.className = 'log-entry';
         entry.innerHTML = `<span>[${new Date().toLocaleTimeString()}]</span> ${msg}`;
         logEl.appendChild(entry);
-        logEl.scrollTop = logEl.scrollHeight;
+        logEl.scrollTop = logEl.scrollHeight; // Auto-scroll to bottom
     }
 
+    /**
+     * Updates the status display at the top of the HUD.
+     * Shows game state, current turn, and system messages.
+     * 
+     * @param {string} msg - The status message to display
+     */
     function updateStatus(msg) {
         document.getElementById('status').innerText = msg;
     }
 
+    /**
+     * Renders the chess board and all pieces based on current game state.
+     * Handles board orientation (normal or flipped), piece placement, 
+     * square highlighting (selected/last move), and visual styling.
+     * This is the main rendering function called whenever the board needs to update.
+     */
     function renderBoard() {
-        boardEl.innerHTML = '';
+        boardEl.innerHTML = ''; // Clear existing board
+        // FEN string has multiple parts separated by spaces: pieces, turn, castling, en passant, halfmove, fullmove
+        // We only need the piece positions (first part) for rendering the board
         const fen = game.fen().split(' ')[0];
-        let rows = fen.split('/');
-        
-        // Handle flipping
-        if (isFlipped) {
-            rows = rows.reverse().map(r => r.split('').reverse().join('')); // This logic is tricky with FEN numbers, easier to iterate 63-0 or 0-63
-        }
 
-        // We will just iterate 0-63 and calculate rank/file based on orientation
+        // Iterate through all 64 squares (0-63)
+        // Calculate rank/file based on whether board is flipped
         for (let i = 0; i < 64; i++) {
-            let squareIdx = isFlipped ? 63 - i : i;
-            let rank = 7 - Math.floor(squareIdx / 8);
-            let file = squareIdx % 8;
-            let squareName = String.fromCharCode(97 + file) + (rank + 1);
+            let squareIdx = isFlipped ? 63 - i : i; // Flip index if needed
+            let rank = 7 - Math.floor(squareIdx / 8); // Calculate rank (0-7 from bottom to top)
+            let file = squareIdx % 8; // Calculate file (0-7 from left to right)
+            let squareName = String.fromCharCode(97 + file) + (rank + 1); // Convert to algebraic notation (e.g., 'e4')
 
+            // Create square element
             let div = document.createElement('div');
-            let isLight = (rank + file) % 2 !== 0; // Standard chess coloring logic
+            let isLight = (rank + file) % 2 !== 0; // Standard chess board coloring
             
             div.className = `square ${isLight ? 'light' : 'dark'}`;
             div.dataset.square = squareName;
             div.onclick = () => onSquareClick(squareName);
 
-            // Piece placement
+            // Place piece on square if one exists
             let piece = game.get(squareName);
             if (piece) {
                 let span = document.createElement('span');
                 span.className = 'piece';
                 span.innerText = piece.color === 'w' ? pieces[piece.type.toUpperCase()] : pieces[piece.type];
-                // Cyberpunk styling for pieces
+                // Apply cyberpunk styling: white pieces in white, black pieces in neon green
                 span.style.color = piece.color === 'w' ? '#fff' : '#0f0';
-                if(piece.color === 'b') span.style.textShadow = '0 0 5px #0f0';
+                if(piece.color === 'b') span.style.textShadow = '0 0 5px #0f0'; // Add glow to black pieces
                 
                 div.appendChild(span);
             }
 
-            // Highlights
+            // Highlight currently selected square
             if (selectedSquare === squareName) div.classList.add('selected');
             
-            // Last move highlight
+            // Highlight last move made
             let history = game.history({verbose: true});
             if(history.length > 0) {
                 let last = history[history.length-1];
@@ -313,37 +461,49 @@
             boardEl.appendChild(div);
         }
         
-        updateEvalBar();
+        updateEvalBar(); // Update the evaluation bar after rendering
     }
 
+    /**
+     * Handles click events on chess board squares.
+     * Implements the game's interaction logic:
+     * - First click selects a piece (if it's the current player's piece)
+     * - Second click attempts to move the selected piece to the clicked square
+     * - Clicking the same square deselects it
+     * - Invalid moves allow reselection of a different piece
+     * 
+     * @param {string} square - The algebraic notation of the clicked square (e.g., 'e4')
+     */
     function onSquareClick(square) {
-        // If game over, do nothing
+        // Prevent interaction if game is over
         if (game.game_over()) return;
 
-        // If clicking same square, deselect
+        // Deselect if clicking the same square again
         if (selectedSquare === square) {
             selectedSquare = null;
             renderBoard();
             return;
         }
 
-        // If a square is already selected, try to move
+        // Attempt to move if a square is already selected
         if (selectedSquare) {
             let move = game.move({
                 from: selectedSquare,
                 to: square,
-                promotion: 'q' // Auto promote to queen for simplicity
+                promotion: 'q' // Automatically promote pawns to queens for simplicity
             });
 
             if (move) {
+                // Move was successful
                 selectedSquare = null;
                 renderBoard();
                 checkGameState();
+                // Trigger AI response after a brief delay
                 if (!game.game_over()) {
                     setTimeout(aiMove, 500);
                 }
             } else {
-                // Invalid move, but if they clicked their own piece, switch selection
+                // Invalid move - check if player clicked their own piece to switch selection
                 let piece = game.get(square);
                 if (piece && piece.color === game.turn()) {
                     selectedSquare = square;
@@ -354,7 +514,7 @@
                 }
             }
         } else {
-            // Select piece
+            // No square selected yet - select piece if it belongs to current player
             let piece = game.get(square);
             if (piece && piece.color === game.turn()) {
                 selectedSquare = square;
@@ -363,9 +523,15 @@
         }
     }
 
+    /**
+     * Checks and updates the game state after each move.
+     * Detects checkmate, draw, and check conditions and updates
+     * the UI accordingly with appropriate status messages.
+     */
     function checkGameState() {
         if (game.in_checkmate()) {
             updateStatus("CHECKMATE. Game Over.");
+            // Display result: 0-1 if white is checkmated, 1-0 if black is checkmated
             log("Result: " + (game.turn() === 'w' ? "0-1" : "1-0"));
         } else if (game.in_draw()) {
             updateStatus("DRAW DETECTED.");
@@ -373,19 +539,31 @@
         } else if (game.in_check()) {
             updateStatus("WARNING: King in Check");
         } else {
+            // Normal game state - show whose turn it is
             updateStatus(game.turn() === 'w' ? "White's Turn" : "Black's Turn");
         }
     }
 
-    // --- SIMPLE AI (Minimax with Piece Values) ---
-    // Not Stockfish 16 (too heavy for single file), but a decent 1500-1800 elo approximation
+    // ========================================================================
+    // AI ENGINE
+    // ========================================================================
+    // Simple chess AI using material evaluation and 1-ply search.
+    // Not as strong as Stockfish, but provides a challenging 1500-1800 ELO opponent.
     
+    // Standard chess piece values (in centipawns)
     const pieceValues = { p: 10, n: 30, b: 30, r: 50, q: 90, k: 900 };
     
+    /**
+     * Evaluates the current board position based on material count.
+     * Positive values favor white, negative values favor black.
+     * 
+     * @param {string} fen - The FEN string representing the board position
+     * @returns {number} The evaluation score (positive favors white, negative favors black)
+     */
     function evaluateBoard(fen) {
         let eval = 0;
         let tempGame = new Chess(fen);
-        // Simple material count
+        // Sum up material values for all pieces on the board
         tempGame.board().forEach(row => {
             row.forEach(piece => {
                 if (piece) {
@@ -398,38 +576,51 @@
         return eval;
     }
 
+    /**
+     * AI move calculation and execution.
+     * Uses a simple greedy algorithm with 1-ply lookahead:
+     * 1. Generates all legal moves
+     * 2. Evaluates each move's resulting position
+     * 3. Adds random jitter to evaluation for variety
+     * 4. Selects the move with the best evaluation
+     * 
+     * The AI plays as black by default and will maximize negative scores
+     * (since negative scores favor black in the evaluation function).
+     */
     function aiMove() {
         updateStatus("CALCULATING OPTIMAL PATH...");
         
-        // Brief delay to simulate thought
+        // Add a brief delay to simulate "thinking" for better UX
         setTimeout(() => {
             const moves = game.moves();
-            if (moves.length === 0) return;
+            if (moves.length === 0) return; // No legal moves available
 
             let bestMove = null;
             let bestValue = game.turn() === 'w' ? -9999 : 9999;
 
-            // Simple 1-ply search (Greedy + Randomness to emulate human-like trickery)
-            // Real GM 3000 would use AlphaBeta depth 20 here.
-            
-            // Shuffle moves to add variety
+            // Shuffle moves to add variety and make AI less predictable
+            // This emulates human-like play by avoiding always choosing the same move
             moves.sort(() => Math.random() - 0.5);
 
+            // Evaluate each possible move
             for (let i = 0; i < moves.length; i++) {
-                game.move(moves[i]);
+                game.move(moves[i]); // Try the move
                 let boardValue = evaluateBoard(game.fen());
                 
-                // Positional jitter
+                // Add small random variation to prevent predictability
                 boardValue += (Math.random() * 2) - 1; 
 
-                game.undo();
+                game.undo(); // Undo the move to try next one
 
+                // Select best move based on whose turn it is
                 if (game.turn() === 'w') {
+                    // White wants to maximize score
                     if (boardValue > bestValue) {
                         bestValue = boardValue;
                         bestMove = moves[i];
                     }
                 } else {
+                    // Black wants to minimize score (since negative = good for black)
                     if (boardValue < bestValue) {
                         bestValue = boardValue;
                         bestMove = moves[i];
@@ -437,26 +628,45 @@
                 }
             }
 
+            // Execute the chosen move
             game.move(bestMove);
             renderBoard();
             checkGameState();
             log(`GM 3000 plays: ${bestMove}`);
             
-            // Taunt logic
+            // Add atmospheric taunt if AI puts player in check
             if (game.in_check()) log("GM 3000: You are exposed.");
         }, 100);
     }
 
+    /**
+     * Updates the visual evaluation bar based on current material balance.
+     * The bar shows positional advantage:
+     * - More green to the right = White is winning
+     * - More green to the left = Black is winning
+     * - Centered = Equal position
+     */
     function updateEvalBar() {
-        // Fake visual eval based on material
+        // Configuration constants for evaluation bar
+        const EVAL_BAR_CENTER = 50;  // Center point (equal position)
+        const EVAL_BAR_SCALE = 2;    // Scaling factor (divide score by 2 to fit typical material range)
+        const EVAL_BAR_MIN = 5;      // Minimum percentage (prevents empty bar)
+        const EVAL_BAR_MAX = 95;     // Maximum percentage (prevents overflow)
+        
+        // Get material evaluation score
         let score = evaluateBoard(game.fen());
-        // Normalize roughly between -200 and 200 material points
-        let percent = 50 + (score / 2); 
-        if(percent < 5) percent = 5;
-        if(percent > 95) percent = 95;
+        // Convert score to percentage (material typically ranges from -200 to +200)
+        let percent = EVAL_BAR_CENTER + (score / EVAL_BAR_SCALE); 
+        // Clamp values to prevent bar from going off-screen
+        if(percent < EVAL_BAR_MIN) percent = EVAL_BAR_MIN;
+        if(percent > EVAL_BAR_MAX) percent = EVAL_BAR_MAX;
         document.getElementById('eval-fill').style.width = percent + "%";
     }
 
+    /**
+     * Resets the game to the starting position.
+     * Clears all game state and reinitializes the board.
+     */
     function resetGame() {
         game.reset();
         selectedSquare = null;
@@ -465,12 +675,19 @@
         updateStatus("Ready.");
     }
 
+    /**
+     * Flips the board orientation (between white's and black's perspective).
+     * Useful for viewing the game from either side.
+     */
     function flipBoard() {
         isFlipped = !isFlipped;
         renderBoard();
     }
 
-    // Initialize
+    // ========================================================================
+    // INITIALIZATION
+    // ========================================================================
+    // Initialize the game when the page loads
     renderBoard();
     log("GM 3000 Neural Net Loaded.");
     log("Target: Human User");

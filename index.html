@@ -414,14 +414,6 @@
     function renderBoard() {
         boardEl.innerHTML = ''; // Clear existing board
         const fen = game.fen().split(' ')[0]; // Get piece positions from FEN string
-        let rows = fen.split('/');
-        
-        // Handle flipping for black's perspective
-        if (isFlipped) {
-            // Note: This variable isn't used in the final implementation
-            // The flipping logic is handled by the square index calculation below
-            rows = rows.reverse().map(r => r.split('').reverse().join(''));
-        }
 
         // Iterate through all 64 squares (0-63)
         // Calculate rank/file based on whether board is flipped

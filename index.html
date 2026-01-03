@@ -413,7 +413,9 @@
      */
     function renderBoard() {
         boardEl.innerHTML = ''; // Clear existing board
-        const fen = game.fen().split(' ')[0]; // Get piece positions from FEN string
+        // FEN string has multiple parts separated by spaces: pieces, turn, castling, en passant, halfmove, fullmove
+        // We only need the piece positions (first part) for rendering the board
+        const fen = game.fen().split(' ')[0];
 
         // Iterate through all 64 squares (0-63)
         // Calculate rank/file based on whether board is flipped
@@ -645,13 +647,19 @@
      * - Centered = Equal position
      */
     function updateEvalBar() {
+        // Configuration constants for evaluation bar
+        const EVAL_BAR_CENTER = 50;  // Center point (equal position)
+        const EVAL_BAR_SCALE = 2;    // Scaling factor (divide score by 2 to fit typical material range)
+        const EVAL_BAR_MIN = 5;      // Minimum percentage (prevents empty bar)
+        const EVAL_BAR_MAX = 95;     // Maximum percentage (prevents overflow)
+        
         // Get material evaluation score
         let score = evaluateBoard(game.fen());
-        // Convert score to percentage (assuming material range of ~-200 to +200)
-        let percent = 50 + (score / 2); 
+        // Convert score to percentage (material typically ranges from -200 to +200)
+        let percent = EVAL_BAR_CENTER + (score / EVAL_BAR_SCALE); 
         // Clamp values to prevent bar from going off-screen
-        if(percent < 5) percent = 5;
-        if(percent > 95) percent = 95;
+        if(percent < EVAL_BAR_MIN) percent = EVAL_BAR_MIN;
+        if(percent > EVAL_BAR_MAX) percent = EVAL_BAR_MAX;
         document.getElementById('eval-fill').style.width = percent + "%";
     }
 

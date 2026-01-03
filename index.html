@@ -424,9 +424,11 @@
     let hintSquares = [];
     let timeExpired = false;
     const INITIAL_TIME = 5 * 60;
-    let timeRemaining = { w: INITIAL_TIME, b: INITIAL_TIME };
+    const initialTimeState = () => ({ w: INITIAL_TIME, b: INITIAL_TIME });
+    let timeRemaining = initialTimeState();
     let timerInterval = null;
     let tickingSide = 'w';
+    let audioCtx = null;
 
     const difficultySettings = {
         easy: { depth: 1, randomness: 0.35 },
@@ -626,7 +628,7 @@
                 }
                 updateClockDisplay();
             }
-        }, 500);
+        }, 1000);
     }
 
     function stopTimer() {
@@ -635,18 +637,18 @@
 
     function playSound(type) {
         if (!soundEnabled || typeof AudioContext === 'undefined') return;
-        const ctxAudio = new (window.AudioContext || window.webkitAudioContext)();
-        const o = ctxAudio.createOscillator();
-        const g = ctxAudio.createGain();
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
         const freq = type === 'capture' ? 440 : type === 'check' ? 520 : 380;
         o.frequency.value = freq;
         o.type = 'sine';
-        g.gain.setValueAtTime(0.06, ctxAudio.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.0001, ctxAudio.currentTime + 0.25);
+        g.gain.setValueAtTime(0.06, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.25);
         o.connect(g);
-        g.connect(ctxAudio.destination);
+        g.connect(audioCtx.destination);
         o.start();
-        o.stop(ctxAudio.currentTime + 0.25);
+        o.stop(audioCtx.currentTime + 0.25);
     }
 
     // ========================================================================
@@ -655,11 +657,14 @@
     function isEndgame(board) {
         let queens = 0;
         let minorMajor = 0;
-        board.flat().forEach(p => {
-            if (!p) return;
-            if (p.type === 'q') queens++;
-            if (['r', 'b', 'n'].includes(p.type)) minorMajor++;
-        });
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+                const p = board[r][c];
+                if (!p) continue;
+                if (p.type === 'q') queens++;
+                if (['r', 'b', 'n'].includes(p.type)) minorMajor++;
+            }
+        }
         return queens === 0 || (queens === 2 && minorMajor <= 4);
     }
 
@@ -726,6 +731,7 @@
     function searchBestMove() {
         const clone = new Chess(game.fen());
         const { depth, randomness } = difficultySettings[difficulty];
+        const VALUE_TOLERANCE = 10;
         const candidates = [];
         const maximizing = clone.turn() === 'w';
         const moves = clone.moves({ verbose: true });
@@ -740,7 +746,7 @@
                     target = value;
                     candidates.length = 0;
                     candidates.push({ move, value });
-                } else if (Math.abs(value - target) < 10) {
+                } else if (Math.abs(value - target) < VALUE_TOLERANCE) {
                     candidates.push({ move, value });
                 }
             } else {
@@ -748,7 +754,7 @@
                     target = value;
                     candidates.length = 0;
                     candidates.push({ move, value });
-                } else if (Math.abs(value - target) < 10) {
+                } else if (Math.abs(value - target) < VALUE_TOLERANCE) {
                     candidates.push({ move, value });
                 }
             }
@@ -878,7 +884,7 @@
         selectedSquare = null;
         hintSquares = [];
         timeExpired = false;
-        timeRemaining = { w: INITIAL_TIME, b: INITIAL_TIME };
+        timeRemaining = initialTimeState();
         updateClockDisplay();
         renderBoard();
         renderMoveHistory();
@@ -906,7 +912,7 @@
 
     function exportPGN() {
         const pgn = game.pgn();
-        if (navigator.clipboard) navigator.clipboard.writeText(pgn).then(() => log("PGN copied to clipboard."));
+        if (navigator.clipboard) navigator.clipboard.writeText(pgn).then(() => log("PGN copied to clipboard.")).catch(() => log("Clipboard access denied."));
         const blob = new Blob([pgn], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

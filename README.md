@@ -110,47 +110,47 @@ Simple but effective AI using:
 
 The codebase is organized into logical sections:
 
-1. **CSS Styling** (Lines ~7-230):
+1. **CSS Styling** (Lines ~7-254):
    - Custom properties (CSS variables)
    - Layout and positioning
    - Component styling
    - Responsive breakpoints
 
-2. **Matrix Rain Effect** (Lines ~231-270):
+2. **Matrix Rain Effect** (Lines ~301-360):
    - Canvas setup
    - Animation loop
    - Character rendering
 
-3. **Chess Game State** (Lines ~271-310):
+3. **Chess Game State** (Lines ~362-378):
    - Game initialization
    - State variables
    - Piece mappings
 
-4. **UI Helper Functions** (Lines ~311-340):
+4. **UI Helper Functions** (Lines ~380-408):
    - Logging system
    - Status updates
 
-5. **Board Rendering** (Lines ~341-400):
+5. **Board Rendering** (Lines ~414-478):
    - Square creation
    - Piece placement
    - Highlighting logic
 
-6. **Game Interaction** (Lines ~401-460):
+6. **Game Interaction** (Lines ~483-531):
    - Click handlers
    - Move validation
    - Turn management
 
-7. **Game State Checking** (Lines ~461-480):
+7. **Game State Checking** (Lines ~537-544):
    - Checkmate detection
    - Draw detection
    - Status updates
 
-8. **AI Engine** (Lines ~481-550):
+8. **AI Engine** (Lines ~546-650):
    - Position evaluation
    - Move selection
    - AI response
 
-9. **Utility Functions** (Lines ~551-580):
+9. **Utility Functions** (Lines ~655-689):
    - Evaluation bar update
    - Game reset
    - Board flipping

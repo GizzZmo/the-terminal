@@ -4,6 +4,8 @@
 
 ![Chess Game](https://img.shields.io/badge/Game-Chess-green) ![AI Level](https://img.shields.io/badge/AI-3000%20ELO-brightgreen) ![License](https://img.shields.io/badge/License-Open%20Source-blue)
 
+_Default AI profile is branded as **3000 ELO** (GM 3000); actual playing strength depends on the chosen search depth setting._
+
 ## 🎯 Overview
 
 **The Terminal** is an interactive browser-based chess game that combines classic chess gameplay with a stunning cyberpunk aesthetic. Play against the GM 3000 AI in a neon-green Matrix-inspired environment.

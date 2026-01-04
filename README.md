@@ -2,7 +2,7 @@
 
 > A cyberpunk-themed chess game featuring Matrix-style visuals and an AI opponent.
 
-![Chess Game](https://img.shields.io/badge/Game-Chess-green) ![AI Level](https://img.shields.io/badge/AI-1500--1800%20ELO-brightgreen) ![License](https://img.shields.io/badge/License-Open%20Source-blue)
+![Chess Game](https://img.shields.io/badge/Game-Chess-green) ![AI Level](https://img.shields.io/badge/AI-3000%20ELO-brightgreen) ![License](https://img.shields.io/badge/License-Open%20Source-blue)
 
 ## 🎯 Overview
 

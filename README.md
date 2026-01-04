@@ -11,11 +11,12 @@
 ### Features
 
 - 🎨 **Cyberpunk Aesthetics**: High-contrast neon green on deep black with Matrix rain background
-- 🤖 **AI Opponent**: GM 3000 AI using material evaluation (approximately 1500-1800 ELO strength)
+- 🤖 **Adaptive AI Opponent**: Multi-ply minimax with alpha-beta pruning, piece-square tables, opening book, and difficulty levels
 - ♟️ **Full Chess Rules**: Complete move validation including castling, en passant, and pawn promotion
 - 📊 **Real-time Evaluation**: Visual evaluation bar showing position advantage
-- 📝 **Game Log**: Timestamped log of all moves and game events
-- 🔄 **Board Flip**: View the game from either white's or black's perspective
+- 📝 **Move History & Log**: Timestamped log plus structured move list with undo support
+- 🔄 **Board Flip & Modes**: View from either side and switch between vs AI and two-player hot-seat
+- 🕑 **Game Clock & Sound**: Dual timers, hints, PGN export, and toggleable audio cues
 - 📱 **Responsive Design**: Fully playable on desktop and mobile devices
 
 ## 🚀 Getting Started
@@ -45,21 +46,31 @@ This is a self-contained HTML file that requires no build process, dependencies 
 3. **Deselect**: Click on the same piece again to deselect it
 4. **Reset Game**: Click "Reset System" button to start a new game
 5. **Flip Board**: Click "Flip Cam" to view from black's perspective
+6. **Undo**: Step back one move (two plies in AI mode) with the **Undo** button
+7. **Hint**: Request the AI's suggested move with **Hint**
+8. **Export PGN**: Save/share the current game with **Export PGN**
 
 ### Game Rules
 
-- You play as **White** and the AI plays as **Black**
+- You play as **White** and the AI plays as **Black** (unless in **2 PLAYERS** mode)
 - Standard chess rules apply
 - Pawns automatically promote to Queens when reaching the last rank
-- The AI responds automatically after your move
-- Game ends in checkmate or draw
+- The AI responds automatically after your move (AI mode)
+- Game ends in checkmate, draw, or if a player runs out of time
 
 ### Visual Indicators
 
 - **Green Highlight**: Currently selected piece
 - **Yellow Border**: Last move made (from/to squares)
 - **Green Glow**: Square hover effect
-- **Evaluation Bar**: Shows material advantage (right = white winning, left = black winning)
+- **Cyan Outline**: Hint suggestion squares
+- **Evaluation Bar**: Shows positional advantage (right = white winning, left = black winning)
+
+### Modes & Difficulty
+
+- **Mode Toggle**: Switch between **VS AI** and **2 PLAYERS** using the control panel
+- **Difficulty Levels**: Easy (1-ply with added randomness), Medium (2-ply), Hard (3-ply) — all using alpha-beta pruning and piece-square tables
+- **Opening Book**: Early moves leverage a lightweight opening book for more human-like play
 
 ## 🏗️ Technical Architecture
 
@@ -94,11 +105,11 @@ Uses the chess.js library (v0.10.3) for:
 - FEN string handling
 
 #### 3. AI Implementation
-Simple but effective AI using:
-- **Material Evaluation**: Piece values (Pawn=10, Knight=30, Bishop=30, Rook=50, Queen=90, King=900)
-- **1-Ply Search**: Evaluates all possible moves one level deep
-- **Randomness Factor**: Adds variation to avoid predictable play
-- **Greedy Selection**: Chooses move with best material outcome
+Upgraded AI pipeline featuring:
+- **Multi-ply Minimax + Alpha-Beta**: Depth varies by difficulty (1-3 plies)
+- **Piece-Square Tables**: Positionally aware evaluation including endgame king tables
+- **Opening Book**: Common opening lines for natural early play
+- **Hints & Suggestions**: Re-uses the search to propose strong candidate moves
 
 #### 4. UI Rendering
 - **CSS Grid**: 8x8 board layout
@@ -171,17 +182,9 @@ Modify the CSS custom properties at the top of the `<style>` section:
 
 ### Adjusting AI Strength
 
-Modify the piece values in the `pieceValues` object:
-
-```javascript
-const pieceValues = { p: 10, n: 30, b: 30, r: 50, q: 90, k: 900 };
-```
-
-Or adjust the randomness factor in the `aiMove()` function:
-
-```javascript
-boardValue += (Math.random() * 2) - 1; // Increase range for more randomness
-```
+- Use the **Difficulty** dropdown (Easy/Medium/Hard) to switch search depth and randomness
+- Tweak search parameters in `difficultySettings` (depth and randomness)
+- Modify `pieceValues` or the piece-square tables (`pst`) to favor different styles
 
 ### Board Size
 
@@ -202,27 +205,23 @@ Change the square size in the CSS:
 
 ## 🐛 Known Limitations
 
-- **AI Depth**: The AI only looks one move ahead (1-ply), making it beatable for experienced players
-- **No Opening Book**: The AI doesn't use standard chess openings
-- **No Endgame Tables**: Position evaluation is purely material-based
 - **Auto-Promotion**: Pawns always promote to Queens (no choice of piece)
-- **No Move History Navigation**: Cannot undo or review previous positions
 - **No Save/Load**: Games cannot be saved and resumed later
 
 ## 🚧 Future Enhancements
 
 Potential improvements for future versions:
 
-- [ ] Multi-ply search depth (minimax/alpha-beta pruning)
-- [ ] Position evaluation (piece square tables)
-- [ ] Opening book integration
-- [ ] Move history with undo functionality
-- [ ] PGN export
-- [ ] Difficulty levels
-- [ ] Two-player mode
-- [ ] Game timer/clock
-- [ ] Sound effects
-- [ ] Move suggestions/hints
+- [x] Multi-ply search depth (minimax/alpha-beta pruning)
+- [x] Position evaluation (piece square tables)
+- [x] Opening book integration
+- [x] Move history with undo functionality
+- [x] PGN export
+- [x] Difficulty levels
+- [x] Two-player mode
+- [x] Game timer/clock
+- [x] Sound effects
+- [x] Move suggestions/hints
 
 ## 📝 License
 
